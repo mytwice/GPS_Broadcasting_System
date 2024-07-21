@@ -142,7 +142,6 @@
             </ul>
         </div>
     </div>
-
     <script>
         const locations = [
             { lat: 36.3171, lon: 127.3478, musicFile: '1.mp3', name: '출발' },
@@ -150,50 +149,51 @@
             { lat: 36.3090, lon: 127.3515, musicFile: 'TTS', name: '우미린' },
             { lat: 36.3053, lon: 127.3530, musicFile: '2.mp3', name: '가수원' },
         ];
-
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
-
         function playMusic(musicFile) {
             const audio = new Audio(musicFile);
             audio.play();
         }
-
         function speak(text) {
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR'; // 한국어 설정
             speechSynthesis.speak(utterance);
         }
-
         function isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance) {
             return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
         }
-
-    
-        
-          
-    
-
-        
-        Expand All
-    
-    @@ -175,7 +178,11 @@ <h2>목표 위치 및 음악</h2>
-  
         function updateLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
-
                     let currentTarget = null;
                     let nextTarget = null;
                     let targetReached = false;
-
                     locations.forEach((location, index) => {
                         const targetLat = location.lat;
                         const targetLon = location.lon;
 
+                        if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
+                            if (!hasPlayed[location.name]) {
+                                if (location.musicFile === 'TTS') {
+                                    speak(`이번역은 ${location.name}입니다.`);
+                                } else {
+                                    playMusic(location.musicFile);
+                                }
+                                hasPlayed[location.name] = true; // 음악 재생 상태 업데이트
+                            }
+                            if (!targetReached) {
+                                currentTarget = location;
+                                targetReached = true;
+                            }
+                        } else {
+                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화하지 않음
+                            if (targetReached && !nextTarget) {
+                                nextTarget = location;
+                            }
 
     
         
@@ -203,34 +203,20 @@
         
         Expand All
     
-    @@ -184,11 +191,24 @@ <h2>목표 위치 및 음악</h2>
+    @@ -207,7 +210,10 @@ <h2>목표 위치 및 음악</h2>
   
-                        if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
-                            if (!hasPlayed[location.musicFile]) {
-                                playMusic(location.musicFile);
-                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
-                            }
-                            if (!targetReached) {
-                                currentTarget = location;
-                                targetReached = true;
-                            }
-                        } else {
-                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
-                            hasPlayed[location.musicFile] = false;
-                            if (targetReached && !nextTarget) {
-                                nextTarget = location;
-                            }
                         }
                     });
-
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                        if (!hasPlayed[`${currentTarget.name}-next`]) {
+                            speak(`다음역은 ${nextTargetName}입니다.`);
+                            hasPlayed[`${currentTarget.name}-next`] = true;
+                        }
                     }
                 }, error => {
                     console.error(error);
-                    document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
 
     
           
@@ -242,6 +228,7 @@
     
     
   
+                    document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
                 });
             } else {
                 document.getElementById('current-location').innerText = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
