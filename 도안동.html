@@ -154,7 +154,7 @@
         ];
         
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
-        let spokenTargets = new Set(); // TTS 메시지가 이미 전달된 목표 위치를 추적
+        let spokenTargets = new Set(); // 이미 TTS가 나간 목표 위치를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
         let currentAudio = null; // 현재 재생 중인 음악을 추적
         let currentUtterance = null; // 현재 재생 중인 TTS를 추적
@@ -237,8 +237,9 @@
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        if (currentTarget.musicFile === 'TTS') {
+                        if (currentTarget.musicFile === 'TTS' && !spokenTargets.has(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`)) {
                             speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                            spokenTargets.add(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
                         }
                     }
                 }, error => {
@@ -287,7 +288,6 @@
         updateTargetList(); // 목표 위치 및 음악 정보 업데이트
         setInterval(updateLocation, 3000); // 3초에 한 번씩 위치 갱신
         updateLocation(); // 첫 위치 갱신 즉시 호출
-
     </script>
 </body>
 </html>
