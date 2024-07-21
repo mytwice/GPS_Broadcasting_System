@@ -185,6 +185,9 @@
             stopCurrentUtterance(); // 이전 TTS 중지
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR'; // 한국어 설정
+            utterance.onend = () => {
+                currentUtterance = null; // TTS 종료 시 현재 TTS 객체 초기화
+            };
             speechSynthesis.speak(utterance);
             currentUtterance = utterance;
         }
@@ -211,7 +214,7 @@
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
                             if (!hasPlayed[location.musicFile]) {
                                 if (location.musicFile === 'TTS') {
-                                    speak(location.name);
+                                    speak(`이번역은 ${location.name}입니다.`);
                                 } else {
                                     playMusic(location.musicFile);
                                 }
@@ -233,11 +236,7 @@
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        if (currentTarget.musicFile === 'TTS') {
-                            speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
-                        } else {
-                            stopCurrentUtterance(); // 음악 재생 시 TTS 중지
-                        }
+                        // TTS가 있는 경우만 추가적인 안내를 하지 않음
                     }
                 }, error => {
                     console.error(error);
