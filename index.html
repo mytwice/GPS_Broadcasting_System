@@ -3,157 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS 음악 플레이어</title>
+    <title>GPS 자동 안내방송 시스템</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            text-align: center;
+            padding: 50px;
+            background-color: #f4f4f4;
         }
-        header {
+        .link-container {
+            margin: 20px;
+        }
+        .link-container a {
+            display: inline-block;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 20px;
+            padding: 10px 20px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .link-container a:hover {
             background-color: #007bff;
             color: white;
-            width: 100%;
-            padding: 15px;
-            text-align: center;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-        .container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-            background-color: #ffffff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
-            margin-top: 20px;
-        }
-        .info {
-            margin-bottom: 20px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: #f9f9f9;
-        }
-        h1, h2 {
-            margin: 0;
-        }
-        h1 {
-            font-size: 24px;
-        }
-        h2 {
-            font-size: 20px;
-            color: #333;
-        }
-        p, ul {
-            margin: 10px 0;
-        }
-        ul {
-            list-style-type: none;
-            padding: 0;
-        }
-        li {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-        li:last-child {
-            border-bottom: none;
-        }
-        .info p {
-            font-size: 16px;
-            color: #555;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>GPS 음악 플레이어</h1>
-    </header>
-    <div class="container">
-        <div class="info">
-            <h2>현재 위치</h2>
-            <p id="current-location">위도: - , 경도: -</p>
-        </div>
-
-        <div class="info">
-            <h2>목표 위치 및 음악</h2>
-            <ul id="target-list">
-                <!-- 목표 위치 및 음악 정보가 여기에 표시됩니다 -->
-            </ul>
-        </div>
+    <h1>GPS 자동 안내방송 시스템</h1>
+    <div class="link-container">
+        <a href="https://mytwice.github.io/GPS_Broadcasting_System/대전1호선" target="_blank">대전 1호선</a>
     </div>
-
-    <audio id="audio" type="audio/mp3"></audio>
-
-    <script>
-        const locations = [
-            { lat: 36.3171, lon: 127.3478, musicFile: '1.mp3', name: '출발' },
-            { lat: 36.3129, lon: 127.3499, musicFile: '2.mp3', name: '호반' },
-            { lat: 36.3090, lon: 127.3515, musicFile: '3.mp3', name: '우미린' },
-            { lat: 36.3053, lon: 127.3530, musicFile: '4.mp3', name: '가수원' },
-        ];
-
-        let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
-
-        function playMusic(musicFile) {
-            const audio = document.getElementById('audio');
-            audio.src = musicFile;
-            audio.play();
-        }
-
-        function isAtTargetLocation(lat, lon, targetLat, targetLon) {
-            // ±5도 범위 설정
-            const tolerance = 0.0005;
-            return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
-        }
-
-        function updateLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
-
-                    locations.forEach(location => {
-                        const targetLat = location.lat;
-                        const targetLon = location.lon;
-
-                        if (isAtTargetLocation(lat, lon, targetLat, targetLon)) {
-                            if (!hasPlayed[location.musicFile]) {
-                                playMusic(location.musicFile);
-                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
-                            }
-                        } else {
-                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
-                            hasPlayed[location.musicFile] = false;
-                        }
-                    });
-                }, error => {
-                    console.error(error);
-                    document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
-                });
-            } else {
-                document.getElementById('current-location').innerText = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
-            }
-        }
-
-        function updateTargetList() {
-            const targetList = document.getElementById('target-list');
-            targetList.innerHTML = ''; // 기존 목록 비우기
-
-            locations.forEach(location => {
-                const listItem = document.createElement('li');
-                listItem.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} - ${location.name} (${location.musicFile})`;
-                targetList.appendChild(listItem);
-            });
-        }
-
-        updateTargetList(); // 목표 위치 및 음악 정보 업데이트
-        setInterval(updateLocation, 3000); // 3초에 한 번씩 위치 갱신
-        updateLocation(); // 첫 위치 갱신 즉시 호출
-    </script>
+    <div class="link-container">
+        <a href="https://mytwice.github.io/GPS_Broadcasting_System/도안동" target="_blank">도안동</a>
+    </div>
+    <div class="link-container">
+        <a href="https://mytwice.github.io/GPS_Broadcasting_System/의정부" target="_blank">의정부</a>
+    </div>
 </body>
 </html>
