@@ -29,17 +29,25 @@
             color: white;
         }
     </style>
+    <script>
+        function confirmNavigation(event, url) {
+            event.preventDefault(); // 링크 클릭 기본 동작 방지
+            if (confirm('사이트 사용 시에 발생하는 오류와 문제에 대해 책임지지 않습니다. 계속 진행하시겠습니까?')) {
+                window.location.href = url; // 확인 시 페이지 이동
+            }
+        }
+    </script>
 </head>
 <body>
     <h1>GPS 자동 안내방송 시스템</h1>
     <div class="link-container">
-        <a href="https://mytwice.github.io/GPS_Broadcasting_System/대전1호선" target="_blank">대전 1호선</a>
+        <a href="https://mytwice.github.io/KEM/대전1호선" onclick="confirmNavigation(event, 'https://mytwice.github.io/KEM/대전1호선')">대전 1호선</a>
     </div>
     <div class="link-container">
-        <a href="https://mytwice.github.io/GPS_Broadcasting_System/도안동" target="_blank">도안동</a>
+        <a href="https://mytwice.github.io/KEM/도안동" onclick="confirmNavigation(event, 'https://mytwice.github.io/KEM/도안동')">도안동</a>
     </div>
     <div class="link-container">
-        <a href="https://mytwice.github.io/GPS_Broadcasting_System/의정부" target="_blank">의정부</a>
+        <a href="https://mytwice.github.io/KEM/의정부" onclick="confirmNavigation(event, 'https://mytwice.github.io/KEM/의정부')">의정부</a>
     </div>
 </body>
 </html>
