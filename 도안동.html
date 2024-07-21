@@ -154,6 +154,7 @@
         ];
 
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
+        let spokenTargets = new Set(); // TTS 메시지가 이미 전달된 목표 위치를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
         let currentAudio = null; // 현재 재생 중인 음악을 추적
         let currentUtterance = null; // 현재 재생 중인 TTS를 추적
@@ -209,7 +210,10 @@
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
                             if (!hasPlayed[location.musicFile]) {
                                 if (location.musicFile === 'TTS') {
-                                    speak(location.name);
+                                    if (!spokenTargets.has(location.name)) {
+                                        speak(location.name);
+                                        spokenTargets.add(location.name);
+                                    }
                                 } else {
                                     playMusic(location.musicFile);
                                 }
@@ -281,6 +285,7 @@
         updateTargetList(); // 목표 위치 및 음악 정보 업데이트
         setInterval(updateLocation, 3000); // 3초에 한 번씩 위치 갱신
         updateLocation(); // 첫 위치 갱신 즉시 호출
+
     </script>
 </body>
 </html>
