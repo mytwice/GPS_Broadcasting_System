@@ -155,16 +155,36 @@
 
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
+        let currentAudio = null; // 현재 재생 중인 음악을 추적
+        let currentUtterance = null; // 현재 재생 중인 TTS를 추적
+
+        function stopCurrentAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+        }
+
+        function stopCurrentUtterance() {
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+                currentUtterance = null;
+            }
+        }
 
         function playMusic(musicFile) {
+            stopCurrentAudio();
             const audio = new Audio(musicFile);
             audio.play();
+            currentAudio = audio;
         }
 
         function speak(text) {
+            stopCurrentUtterance();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR'; // 한국어 설정
             speechSynthesis.speak(utterance);
+            currentUtterance = utterance;
         }
 
         function isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance) {
@@ -188,7 +208,11 @@
 
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
                             if (!hasPlayed[location.musicFile]) {
-                                playMusic(location.musicFile);
+                                if (location.musicFile === 'TTS') {
+                                    speak(location.name);
+                                } else {
+                                    playMusic(location.musicFile);
+                                }
                                 hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
                             }
                             if (!targetReached) {
