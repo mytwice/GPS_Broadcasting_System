@@ -35,8 +35,9 @@
         const locations = [
             { lat: 36.3171, lon: 127.3478, musicFile: '1.mp3', name: '출발' },
             { lat: 36.3129, lon: 127.3499, musicFile: '2.mp3', name: '호반' },
-
         ];
+
+        let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
 
         function playMusic(musicFile) {
             const audio = document.getElementById('audio');
@@ -45,32 +46,32 @@
         }
 
         function isAtTargetLocation(lat, lon, targetLat, targetLon) {
-            return Math.abs(lat - targetLat) < 0.0005 && Math.abs(lon - targetLon) < 0.00005;
+            // ±5도 범위 설정
+            const tolerance = 0.0005;
+            return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
         }
 
         function updateLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
-                    const lat = position.coords.latitude.toFixed(4);
-                    const lon = position.coords.longitude.toFixed(4);
-                    document.getElementById('current-location').innerText = `위도: ${lat}, 경도: ${lon}`;
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
 
-                    let found = false;
                     locations.forEach(location => {
-                        const targetLat = location.lat.toFixed(4);
-                        const targetLon = location.lon.toFixed(4);
+                        const targetLat = location.lat;
+                        const targetLon = location.lon;
 
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon)) {
-                            if (!found) {
+                            if (!hasPlayed[location.musicFile]) {
                                 playMusic(location.musicFile);
-                                found = true; // 음악이 재생된 후에는 더 이상 다른 위치와 비교하지 않도록 설정
+                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
                             }
+                        } else {
+                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
+                            hasPlayed[location.musicFile] = false;
                         }
                     });
-
-                    if (!found) {
-                        document.getElementById('status').innerText = '목표 위치에 도달하지 않았습니다.';
-                    }
                 }, error => {
                     console.error(error);
                     document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
