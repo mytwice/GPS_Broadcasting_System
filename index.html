@@ -1,39 +1,98 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-    <title>GPS Music Player</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPS 음악 플레이어</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .info {
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="status">Waiting for GPS location...</h1>
-    <audio id="audio" src="your-music-file.mp3" type="audio/mp3"></audio>
+    <h1>GPS 음악 플레이어</h1>
+    
+    <div class="info">
+        <h2>현재 위치</h2>
+        <p id="current-location">위도: - , 경도: -</p>
+    </div>
+
+    <div class="info">
+        <h2>목표 위치 및 음악</h2>
+        <ul id="target-list">
+            <!-- 목표 위치 및 음악 정보가 여기에 표시됩니다 -->
+        </ul>
+    </div>
+    
+    <audio id="audio" type="audio/mp3"></audio>
+
     <script>
-        function playMusic() {
+        const locations = [
+            { lat: 37.5665, lon: 126.9780, musicFile: 'music1.mp3', name: '서울' }, // 예시 위치 1
+            { lat: 37.5775, lon: 126.9870, musicFile: 'music2.mp3', name: '서울역' }  // 예시 위치 2
+        ];
+
+        function playMusic(musicFile) {
             const audio = document.getElementById('audio');
+            audio.src = musicFile;
             audio.play();
         }
 
-        function isAtTargetLocation(lat, lon) {
-            const targetLat = 37.5665; // 목표 위치의 위도
-            const targetLon = 126.9780; // 목표 위치의 경도
-            return Math.abs(lat - targetLat) < 0.0001 && Math.abs(lon - targetLon) < 0.0001;
+        function isAtTargetLocation(lat, lon, targetLat, targetLon) {
+            return Math.abs(lat - targetLat) < 0.00005 && Math.abs(lon - targetLon) < 0.00005;
         }
 
-        if (navigator.geolocation) {
-            navigator.geolocation.watchPosition(position => {
-                const lat = position.coords.latitude;
-                const lon = position.coords.longitude;
-                document.getElementById('status').innerText = `Latitude: ${lat}, Longitude: ${lon}`;
+        function updateLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(position => {
+                    const lat = position.coords.latitude.toFixed(4);
+                    const lon = position.coords.longitude.toFixed(4);
+                    document.getElementById('current-location').innerText = `위도: ${lat}, 경도: ${lon}`;
 
-                if (isAtTargetLocation(lat, lon)) {
-                    playMusic();
-                }
-            }, error => {
-                console.error(error);
-                document.getElementById('status').innerText = 'Error getting GPS location.';
+                    let found = false;
+                    locations.forEach(location => {
+                        const targetLat = location.lat.toFixed(4);
+                        const targetLon = location.lon.toFixed(4);
+
+                        if (isAtTargetLocation(lat, lon, targetLat, targetLon)) {
+                            if (!found) {
+                                playMusic(location.musicFile);
+                                found = true; // 음악이 재생된 후에는 더 이상 다른 위치와 비교하지 않도록 설정
+                            }
+                        }
+                    });
+
+                    if (!found) {
+                        document.getElementById('status').innerText = '목표 위치에 도달하지 않았습니다.';
+                    }
+                }, error => {
+                    console.error(error);
+                    document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
+                });
+            } else {
+                document.getElementById('current-location').innerText = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
+            }
+        }
+
+        function updateTargetList() {
+            const targetList = document.getElementById('target-list');
+            targetList.innerHTML = ''; // 기존 목록 비우기
+
+            locations.forEach(location => {
+                const listItem = document.createElement('li');
+                listItem.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} - ${location.name} (${location.musicFile})`;
+                targetList.appendChild(listItem);
             });
-        } else {
-            document.getElementById('status').innerText = 'Geolocation is not supported by this browser.';
         }
+
+        updateTargetList(); // 목표 위치 및 음악 정보 업데이트
+        setInterval(updateLocation, 10000); // 10초에 한 번씩 위치 갱신
+        updateLocation(); // 첫 위치 갱신 즉시 호출
     </script>
 </body>
 </html>
