@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS_의정부경전철</title>
+    <title>GPS_도안동</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -119,7 +119,7 @@
 <body>
     <header>
         <h1 class="title">GPS 자동 안내방송 시스템</h1>
-        <p class="subtitle">의정부경전철</p> <!-- 더 시안성 좋게 조정된 작은 글씨 -->
+        <p class="subtitle">도안동</p> <!-- 더 시안성 좋게 조정된 작은 글씨 -->
     </header>
     <div class="container">
         <div class="info">
@@ -147,7 +147,7 @@
 
     <script>
         const locations = [
-            { lat: 37.275361, lon: 127.008569, musicFile: 'TTS', name: '발곡' },
+        { lat: 37.275361, lon: 127.008569, musicFile: 'TTS', name: '발곡' },
             { lat: 37.72505255, lon: 127.0467864, musicFile: 'TTS', name: '회룡' },
             { lat: 37.7287279, lon: 127.0437202, musicFile: 'TTS', name: '범골' },
             { lat: 37.73729974, lon: 127.043321, musicFile: 'TTS', name: '경전철의정부' },
@@ -163,43 +163,73 @@
             { lat: 37.7371698, lon: 127.0872755, musicFile: 'TTS', name: '송산' },
             { lat: 37.73355362, lon: 127.0889064, musicFile: 'TTS', name: '탑석' }
         ];
-
+        
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
+        let spokenTargets = new Set(); // 이미 TTS가 나간 목표 위치를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
-
+        let currentAudio = null; // 현재 재생 중인 음악을 추적
+        let currentUtterance = null; // 현재 재생 중인 TTS를 추적
+        
+        function stopCurrentAudio() {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+        }
+        
+        function stopCurrentUtterance() {
+            if (currentUtterance) {
+                speechSynthesis.cancel();
+                currentUtterance = null;
+            }
+        }
+        
         function playMusic(musicFile) {
+            stopCurrentUtterance(); // TTS가 있으면 멈춤
+            stopCurrentAudio();
             const audio = new Audio(musicFile);
             audio.play();
+            currentAudio = audio;
         }
-
+        
         function speak(text) {
+            stopCurrentAudio(); // 음악이 있으면 멈춤
+            stopCurrentUtterance();
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR'; // 한국어 설정
             speechSynthesis.speak(utterance);
+            currentUtterance = utterance;
         }
-
+        
         function isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance) {
             return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
         }
-
+        
         function updateLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
                     document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
-
+        
                     let currentTarget = null;
                     let nextTarget = null;
                     let targetReached = false;
-
+        
                     locations.forEach((location, index) => {
                         const targetLat = location.lat;
                         const targetLon = location.lon;
-
+        
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
                             if (!hasPlayed[location.musicFile]) {
-                                playMusic(location.musicFile);
+                                if (location.musicFile === 'TTS') {
+                                    if (!spokenTargets.has(location.name)) {
+                                        speak(location.name);
+                                        spokenTargets.add(location.name);
+                                    }
+                                } else {
+                                    playMusic(location.musicFile);
+                                }
                                 hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
                             }
                             if (!targetReached) {
@@ -214,11 +244,14 @@
                             }
                         }
                     });
-
+        
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                        if (currentTarget.musicFile === 'TTS' && !spokenTargets.has(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`)) {
+                            speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                            spokenTargets.add(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                        }
                     }
                 }, error => {
                     console.error(error);
@@ -228,41 +261,41 @@
                 document.getElementById('current-location').innerText = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
             }
         }
-
+        
         function updateTargetList() {
             const targetList = document.getElementById('target-list');
             targetList.innerHTML = ''; // 기존 목록 비우기
-
+        
             locations.forEach(location => {
                 const listItem = document.createElement('li');
-
+        
                 const title = document.createElement('div');
                 title.className = 'item-title';
                 title.textContent = location.name;
-
+        
                 const details = document.createElement('div');
                 details.className = 'item-details';
                 details.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile})`;
-
+        
                 listItem.appendChild(title);
                 listItem.appendChild(details);
-
+        
                 targetList.appendChild(listItem);
             });
         }
-
+        
         // 톱니바퀴 버튼 클릭 시 오차 범위 폼 토글
         document.getElementById('settings-btn').addEventListener('click', () => {
             const controls = document.getElementById('controls');
             controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
         });
-
+        
         // 확인 버튼 클릭 시 오차 범위 값 업데이트
         document.getElementById('confirm-btn').addEventListener('click', () => {
             tolerance = parseFloat(document.getElementById('tolerance').value);
             updateLocation(); // 오차 범위 값 변경 후 위치 업데이트
         });
-
+        
         updateTargetList(); // 목표 위치 및 음악 정보 업데이트
         setInterval(updateLocation, 3000); // 3초에 한 번씩 위치 갱신
         updateLocation(); // 첫 위치 갱신 즉시 호출
