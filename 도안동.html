@@ -128,7 +128,6 @@
                 <button id="settings-btn">&#9881;</button> <!-- 톱니바퀴 버튼 -->
             </h2>
             <p id="current-location">위도: - , 경도: -</p>
-
             <!-- 오차 범위 입력 폼 -->
             <div class="controls" id="controls">
                 <label for="tolerance">GPS 오차 범위 (도):</label>
@@ -136,7 +135,6 @@
                 <button id="confirm-btn">확인</button>
             </div>
         </div>
-
         <div class="info">
             <h2>목표 위치 및 음악</h2>
             <ul id="target-list">
@@ -153,8 +151,7 @@
             { lat: 36.3053, lon: 127.3530, musicFile: '2.mp3', name: '가수원' },
         ];
 
-        let hasPlayedMusic = {};
-        let hasPlayedTTS = {};
+        let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
 
         function playMusic(musicFile) {
@@ -172,6 +169,16 @@
             return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
         }
 
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -175,7 +178,11 @@ <h2>목표 위치 및 음악</h2>
+  
         function updateLocation() {
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
@@ -187,77 +194,85 @@
                         const targetLat = location.lat;
                         const targetLon = location.lon;
 
+
+    
+        
+          
+    
+
+        
+        Expand All
+    
+    @@ -184,11 +191,24 @@ <h2>목표 위치 및 음악</h2>
+  
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
-                            if (location.musicFile === 'TTS') {
-                                if (!hasPlayedTTS[location.name]) {
-                                    speak(`이번역은 ${location.name}입니다.`);
-                                    hasPlayedTTS[location.name] = true;
-                                }
-                            } else {
-                                if (!hasPlayedMusic[location.name]) {
-                                    playMusic(location.musicFile);
-                                    hasPlayedMusic[location.name] = true;
-                                }
+                            if (!hasPlayed[location.musicFile]) {
+                                playMusic(location.musicFile);
+                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
                             }
                             if (!targetReached) {
                                 currentTarget = location;
                                 targetReached = true;
                             }
-                        }
-                        if (!targetReached && index < locations.length - 1) {
-                            nextTarget = locations[index + 1];
+                        } else {
+                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
+                            hasPlayed[location.musicFile] = false;
+                            if (targetReached && !nextTarget) {
+                                nextTarget = location;
+                            }
                         }
                     });
 
-                    if (currentTarget && !hasPlayedTTS[`${currentTarget.name}-next`]) {
+                    if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(`다음역은 ${nextTargetName}입니다.`);
-                        hasPlayedTTS[`${currentTarget.name}-next`] = true;
+                        speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
                     }
                 }, error => {
                     console.error(error);
                     document.getElementById('current-location').innerText = 'GPS 위치를 가져오는 중 오류가 발생했습니다.';
+
+    
+          
+            
+    
+
+          
+          Expand Down
+    
+    
+  
                 });
             } else {
                 document.getElementById('current-location').innerText = '이 브라우저에서는 위치 정보를 지원하지 않습니다.';
             }
         }
-
         function updateTargetList() {
             const targetList = document.getElementById('target-list');
             targetList.innerHTML = ''; // 기존 목록 비우기
-
             locations.forEach(location => {
                 const listItem = document.createElement('li');
-
                 const title = document.createElement('div');
                 title.className = 'item-title';
                 title.textContent = location.name;
-
                 const details = document.createElement('div');
                 details.className = 'item-details';
                 details.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile})`;
-
                 listItem.appendChild(title);
                 listItem.appendChild(details);
-
                 targetList.appendChild(listItem);
             });
         }
-
         // 톱니바퀴 버튼 클릭 시 오차 범위 폼 토글
         document.getElementById('settings-btn').addEventListener('click', () => {
             const controls = document.getElementById('controls');
             controls.style.display = controls.style.display === 'none' ? 'block' : 'none';
         });
-
         // 확인 버튼 클릭 시 오차 범위 값 업데이트
         document.getElementById('confirm-btn').addEventListener('click', () => {
             tolerance = parseFloat(document.getElementById('tolerance').value);
             updateLocation(); // 오차 범위 값 변경 후 위치 업데이트
         });
-
         updateTargetList(); // 목표 위치 및 음악 정보 업데이트
         setInterval(updateLocation, 3000); // 3초에 한 번씩 위치 갱신
         updateLocation(); // 첫 위치 갱신 즉시 호출
