@@ -153,8 +153,7 @@
             { lat: 36.3053, lon: 127.3530, musicFile: '2.mp3', name: '가수원' },
         ];
 
-        let hasPlayedMusic = {};
-        let hasPlayedTTS = {};
+        let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
         let tolerance = parseFloat(document.getElementById('tolerance').value);
 
         function playMusic(musicFile) {
@@ -177,7 +176,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
+                    document.getElementById('current-location').innerText = 위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)};
 
                     let currentTarget = null;
                     let nextTarget = null;
@@ -188,32 +187,27 @@
                         const targetLon = location.lon;
 
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
-                            if (location.musicFile === 'TTS') {
-                                if (!hasPlayedTTS[location.name]) {
-                                    speak(`이번역은 ${location.name}입니다.`);
-                                    hasPlayedTTS[location.name] = true;
-                                }
-                            } else {
-                                if (!hasPlayedMusic[location.name]) {
-                                    playMusic(location.musicFile);
-                                    hasPlayedMusic[location.name] = true;
-                                }
+                            if (!hasPlayed[location.musicFile]) {
+                                playMusic(location.musicFile);
+                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
                             }
                             if (!targetReached) {
                                 currentTarget = location;
                                 targetReached = true;
                             }
-                        }
-                        if (!targetReached && index < locations.length - 1) {
-                            nextTarget = locations[index + 1];
+                        } else {
+                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
+                            hasPlayed[location.musicFile] = false;
+                            if (targetReached && !nextTarget) {
+                                nextTarget = location;
+                            }
                         }
                     });
 
-                    if (currentTarget && !hasPlayedTTS[`${currentTarget.name}-next`]) {
+                    if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(`다음역은 ${nextTargetName}입니다.`);
-                        hasPlayedTTS[`${currentTarget.name}-next`] = true;
+                        speak(이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.);
                     }
                 }, error => {
                     console.error(error);
@@ -237,7 +231,7 @@
 
                 const details = document.createElement('div');
                 details.className = 'item-details';
-                details.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile})`;
+                details.textContent = 위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile});
 
                 listItem.appendChild(title);
                 listItem.appendChild(details);
