@@ -187,17 +187,20 @@
                         const targetLon = location.lon;
 
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
-                            if (!hasPlayed[location.musicFile]) {
-                                playMusic(location.musicFile);
-                                hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
+                            if (!hasPlayed[location.name]) {
+                                if (location.musicFile === 'TTS') {
+                                    speak(`이번역은 ${location.name}입니다.`);
+                                } else {
+                                    playMusic(location.musicFile);
+                                }
+                                hasPlayed[location.name] = true; // 음악 재생 상태 업데이트
                             }
                             if (!targetReached) {
                                 currentTarget = location;
                                 targetReached = true;
                             }
                         } else {
-                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화
-                            hasPlayed[location.musicFile] = false;
+                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화하지 않음
                             if (targetReached && !nextTarget) {
                                 nextTarget = location;
                             }
@@ -207,7 +210,10 @@
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                        if (!hasPlayed[`${currentTarget.name}-next`]) {
+                            speak(`다음역은 ${nextTargetName}입니다.`);
+                            hasPlayed[`${currentTarget.name}-next`] = true;
+                        }
                     }
                 }, error => {
                     console.error(error);
