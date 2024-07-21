@@ -173,14 +173,16 @@
         }
 
         function playMusic(musicFile) {
-            stopCurrentAudio();
+            stopCurrentUtterance(); // 음악 재생 전에 TTS 중지
+            stopCurrentAudio(); // 이전 음악 중지
             const audio = new Audio(musicFile);
             audio.play();
             currentAudio = audio;
         }
 
         function speak(text) {
-            stopCurrentUtterance();
+            stopCurrentAudio(); // TTS 재생 전에 음악 중지
+            stopCurrentUtterance(); // 이전 TTS 중지
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = 'ko-KR'; // 한국어 설정
             speechSynthesis.speak(utterance);
@@ -233,6 +235,8 @@
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
                         if (currentTarget.musicFile === 'TTS') {
                             speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
+                        } else {
+                            stopCurrentUtterance(); // 음악 재생 시 TTS 중지
                         }
                     }
                 }, error => {
