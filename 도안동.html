@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPS 음악 플레이어</title>
+    <title>GPS_도안동</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,13 +66,32 @@
             font-size: 16px;
             color: #555;
         }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls label {
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .controls input {
+            font-size: 16px;
+            width: 60px;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>GPS 음악 플레이어</h1>
+        <h1>GPS 자동 안내방송 시스템</h1>
     </header>
     <div class="container">
+        <div class="controls">
+            <label for="tolerance">GPS 오차 범위 (도):</label>
+            <input type="number" id="tolerance" step="0.0001" value="0.0005">
+        </div>
+
         <div class="info">
             <h2>현재 위치</h2>
             <p id="current-location">위도: - , 경도: -</p>
@@ -88,7 +107,7 @@
 
     <audio id="audio" type="audio/mp3"></audio>
 
-    <script>
+        <script>
         const locations = [
             { lat: 36.3171, lon: 127.3478, musicFile: '1.mp3', name: '출발' },
             { lat: 36.3129, lon: 127.3499, musicFile: '2.mp3', name: '호반' },
@@ -104,13 +123,13 @@
             audio.play();
         }
 
-        function isAtTargetLocation(lat, lon, targetLat, targetLon) {
-            // ±5도 범위 설정
-            const tolerance = 0.0005;
+        function isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance) {
             return Math.abs(lat - targetLat) < tolerance && Math.abs(lon - targetLon) < tolerance;
         }
 
         function updateLocation() {
+            const tolerance = parseFloat(document.getElementById('tolerance').value);
+            
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
@@ -121,7 +140,7 @@
                         const targetLat = location.lat;
                         const targetLon = location.lon;
 
-                        if (isAtTargetLocation(lat, lon, targetLat, targetLon)) {
+                        if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
                             if (!hasPlayed[location.musicFile]) {
                                 playMusic(location.musicFile);
                                 hasPlayed[location.musicFile] = true; // 음악 재생 상태 업데이트
