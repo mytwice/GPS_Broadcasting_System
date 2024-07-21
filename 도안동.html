@@ -176,7 +176,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    document.getElementById('current-location').innerText = 위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)};
+                    document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
 
                     let currentTarget = null;
                     let nextTarget = null;
@@ -207,7 +207,7 @@
                     if (currentTarget) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        speak(이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.);
+                        speak(`이번역은 ${currentTargetName}입니다. 다음역은 ${nextTargetName}입니다.`);
                     }
                 }, error => {
                     console.error(error);
@@ -231,7 +231,7 @@
 
                 const details = document.createElement('div');
                 details.className = 'item-details';
-                details.textContent = 위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile});
+                details.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} (${location.musicFile})`;
 
                 listItem.appendChild(title);
                 listItem.appendChild(details);
