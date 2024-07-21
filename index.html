@@ -70,7 +70,7 @@
 </head>
 <body>
     <header>
-        <h1>GPS 음악 플레이어</h1>
+        <h1>도안동 자동안내방송</h1>
     </header>
     <div class="container">
         <div class="info">
@@ -92,6 +92,9 @@
         const locations = [
             { lat: 36.3171, lon: 127.3478, musicFile: '1.mp3', name: '출발' },
             { lat: 36.3129, lon: 127.3499, musicFile: '2.mp3', name: '호반' },
+            { lat: 36.3090, lon: 127.3515, musicFile: '3.mp3', name: '우미린' },
+            { lat: 36.3053, lon: 127.3530, musicFile: '4.mp3', name: '가수원' },
+            
         ];
 
         let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
@@ -113,7 +116,7 @@
                 navigator.geolocation.getCurrentPosition(position => {
                     const lat = position.coords.latitude;
                     const lon = position.coords.longitude;
-                    document.getElementById('current-location').innerText = `위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)}`;
+                    document.getElementById('current-location').innerText = 위도: ${lat.toFixed(4)}, 경도: ${lon.toFixed(4)};
 
                     locations.forEach(location => {
                         const targetLat = location.lat;
@@ -144,7 +147,7 @@
 
             locations.forEach(location => {
                 const listItem = document.createElement('li');
-                listItem.textContent = `위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} - ${location.name} (${location.musicFile})`;
+                listItem.textContent = 위도: ${location.lat.toFixed(4)}, 경도: ${location.lon.toFixed(4)} - ${location.name} (${location.musicFile});
                 targetList.appendChild(listItem);
             });
         }
