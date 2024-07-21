@@ -153,7 +153,8 @@
             { lat: 36.3053, lon: 127.3530, musicFile: '2.mp3', name: '가수원' },
         ];
 
-        let hasPlayed = {}; // 목표 위치별로 음악 재생 상태를 추적
+        let hasPlayedMusic = {};
+        let hasPlayedTTS = {};
         let tolerance = parseFloat(document.getElementById('tolerance').value);
 
         function playMusic(musicFile) {
@@ -187,33 +188,32 @@
                         const targetLon = location.lon;
 
                         if (isAtTargetLocation(lat, lon, targetLat, targetLon, tolerance)) {
-                            if (!hasPlayed[location.name]) {
-                                if (location.musicFile === 'TTS') {
+                            if (location.musicFile === 'TTS') {
+                                if (!hasPlayedTTS[location.name]) {
                                     speak(`이번역은 ${location.name}입니다.`);
-                                } else {
-                                    playMusic(location.musicFile);
+                                    hasPlayedTTS[location.name] = true;
                                 }
-                                hasPlayed[location.name] = true; // 음악 재생 상태 업데이트
+                            } else {
+                                if (!hasPlayedMusic[location.name]) {
+                                    playMusic(location.musicFile);
+                                    hasPlayedMusic[location.name] = true;
+                                }
                             }
                             if (!targetReached) {
                                 currentTarget = location;
                                 targetReached = true;
                             }
-                        } else {
-                            // 목표 위치를 벗어났을 때 음악 재생 상태 초기화하지 않음
-                            if (targetReached && !nextTarget) {
-                                nextTarget = location;
-                            }
+                        }
+                        if (!targetReached && index < locations.length - 1) {
+                            nextTarget = locations[index + 1];
                         }
                     });
 
-                    if (currentTarget) {
+                    if (currentTarget && !hasPlayedTTS[`${currentTarget.name}-next`]) {
                         const currentTargetName = currentTarget.name;
                         const nextTargetName = nextTarget ? nextTarget.name : '다음 목표 없음';
-                        if (!hasPlayed[`${currentTarget.name}-next`]) {
-                            speak(`다음역은 ${nextTargetName}입니다.`);
-                            hasPlayed[`${currentTarget.name}-next`] = true;
-                        }
+                        speak(`다음역은 ${nextTargetName}입니다.`);
+                        hasPlayedTTS[`${currentTarget.name}-next`] = true;
                     }
                 }, error => {
                     console.error(error);
